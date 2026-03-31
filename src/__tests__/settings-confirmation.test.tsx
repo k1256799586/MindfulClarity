@@ -13,7 +13,7 @@ describe('Settings confirmations', () => {
     render(<SettingsScreen />);
 
     fireEvent.press(screen.getByText('Reset Productivity Stats'));
-    expect(screen.getByText('Reset your local progress?')).toBeTruthy();
+    expect(screen.getByText('Reset your progress?')).toBeTruthy();
 
     fireEvent.press(screen.getByText('Confirm Reset'));
     expect(useAppStore.getState().settings.deepWorkMode).toBe(true);

@@ -9,35 +9,16 @@ import { TaskEditorForm } from '@/features/tasks/task-editor-form';
 import { TaskListSection } from '@/features/tasks/task-list-section';
 import { groupTasks } from '@/features/tasks/task-grouping';
 import { useAppStore } from '@/store/app-store';
-import { buildDashboardSummary } from '@/store/selectors';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export default function TasksScreen() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const appLimits = useAppStore((state) => state.appLimits);
-  const createTask = useAppStore((state) => state.createTask);
-  const focusSessions = useAppStore((state) => state.focusSessions);
-  const insight = useAppStore((state) => state.insight);
-  const settings = useAppStore((state) => state.settings);
-  const streak = useAppStore((state) => state.streak);
+  const createTaskRemote = useAppStore((state) => state.createTaskRemote);
+  const dashboard = useAppStore((state) => state.dashboard);
   const tasks = useAppStore((state) => state.tasks);
-  const toggleTaskComplete = useAppStore((state) => state.toggleTaskComplete);
-  const updateTask = useAppStore((state) => state.updateTask);
-  const usageSnapshots = useAppStore((state) => state.usageSnapshots);
-
-  const summary = buildDashboardSummary({
-    appLimits,
-    checkIns: [],
-    focusSessions,
-    hasSeenOnboarding: true,
-    insight,
-    seededAt: new Date().toISOString(),
-    settings,
-    streak,
-    tasks,
-    usageSnapshots,
-  });
+  const toggleTaskCompleteRemote = useAppStore((state) => state.toggleTaskCompleteRemote);
+  const updateTaskRemote = useAppStore((state) => state.updateTaskRemote);
   const grouped = groupTasks(tasks);
   const editingTask = editingTaskId
     ? tasks.find((task) => task.id === editingTaskId)
@@ -51,7 +32,9 @@ export default function TasksScreen() {
       <View style={styles.progressCard}>
         <View style={styles.progressBody}>
           <Text style={styles.progressEyebrow}>Today's Journey</Text>
-          <Text style={styles.progressValue}>{summary.progressPercentage}% Complete</Text>
+          <Text style={styles.progressValue}>
+            {dashboard.progressPercentage}% Complete
+          </Text>
           <Text style={styles.progressMessage}>
             You are 2 tasks away from your goal.
           </Text>
@@ -79,7 +62,7 @@ export default function TasksScreen() {
             }}
             onSave={(input) => {
               if (editingTask) {
-                updateTask(editingTask.id, {
+                void updateTaskRemote(editingTask.id, {
                   durationMinutes: input.durationMinutes,
                   lane: input.lane,
                   reminderEnabled: input.reminderEnabled,
@@ -88,7 +71,7 @@ export default function TasksScreen() {
                   title: input.title,
                 });
               } else {
-                createTask({
+                void createTaskRemote({
                   durationMinutes: input.durationMinutes,
                   lane: input.lane,
                   reminderEnabled: input.reminderEnabled,
@@ -108,14 +91,14 @@ export default function TasksScreen() {
       <TaskListSection
         emptyMessage="Create a focus task to start your day."
         onEditTask={setEditingTaskId}
-        onToggleComplete={toggleTaskComplete}
+        onToggleComplete={(taskId) => void toggleTaskCompleteRemote(taskId)}
         tasks={grouped.focus}
         title="Focus"
       />
       <TaskListSection
         emptyMessage="No transition rituals scheduled yet."
         onEditTask={setEditingTaskId}
-        onToggleComplete={toggleTaskComplete}
+        onToggleComplete={(taskId) => void toggleTaskCompleteRemote(taskId)}
         tasks={grouped.transition}
         title="Transition"
       />

@@ -6,7 +6,7 @@ import { TaskEditorForm } from '@/features/tasks/task-editor-form';
 import { useAppStore } from '@/store/app-store';
 
 export default function TaskEditorScreen() {
-  const createTask = useAppStore((state) => state.createTask);
+  const createTaskRemote = useAppStore((state) => state.createTaskRemote);
 
   return (
     <ScreenShell>
@@ -14,7 +14,7 @@ export default function TaskEditorScreen() {
       <TaskEditorForm
         onCancel={() => router.back()}
         onSave={(input) => {
-          createTask({
+          void createTaskRemote({
             durationMinutes: input.durationMinutes,
             lane: input.lane,
             reminderEnabled: input.reminderEnabled,

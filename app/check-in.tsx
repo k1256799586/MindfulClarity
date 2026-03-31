@@ -12,7 +12,7 @@ import { colors, spacing, typography } from '@/theme';
 export default function CheckInScreen() {
   const [note, setNote] = useState('');
   const streak = useAppStore((state) => state.streak);
-  const submitCheckIn = useAppStore((state) => state.submitCheckIn);
+  const submitCheckInRemote = useAppStore((state) => state.submitCheckInRemote);
 
   return (
     <ScreenShell>
@@ -38,7 +38,7 @@ export default function CheckInScreen() {
         <PrimaryButton
           label="Save Check-in"
           onPress={() => {
-            submitCheckIn(note);
+            void submitCheckInRemote(note);
             router.replace('/(tabs)');
           }}
         />

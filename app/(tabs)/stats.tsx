@@ -6,38 +6,13 @@ import { ScreenShell } from '@/components/screen-shell';
 import { TopBar } from '@/components/top-bar';
 import { FocusConsistencyGrid } from '@/features/stats/focus-consistency-grid';
 import { StatCard } from '@/features/stats/stat-card';
-import { getWeeklyUsageInsight } from '@/services/usage-tracking/mock-usage-tracking-service';
 import { useAppStore } from '@/store/app-store';
-import { buildWeeklyStatsSummary } from '@/store/selectors';
 import { colors, spacing, typography } from '@/theme';
 
 export default function StatsScreen() {
   const focusSessions = useAppStore((state) => state.focusSessions);
   const tasks = useAppStore((state) => state.tasks);
-  const usageSnapshots = useAppStore((state) => state.usageSnapshots);
-  const weekly = buildWeeklyStatsSummary({
-    appLimits: [],
-    checkIns: [],
-    focusSessions,
-    hasSeenOnboarding: true,
-    insight: { body: '', title: '' },
-    seededAt: '',
-    settings: {
-      deepWorkMode: true,
-      monitoringEnabled: true,
-      remindersEnabled: true,
-      visualClarity: 'System',
-      zenNotifications: true,
-    },
-    streak: {
-      currentDays: 12,
-      lastCheckInDate: '2026-03-30',
-      longestDays: 42,
-    },
-    tasks,
-    usageSnapshots,
-  });
-  const weeklyUsage = getWeeklyUsageInsight();
+  const weekly = useAppStore((state) => state.weeklyStats);
   const hasNoData = tasks.length === 0 && focusSessions.length === 0;
 
   if (hasNoData) {
@@ -75,14 +50,14 @@ export default function StatsScreen() {
         />
         <StatCard
           eyebrow="Distraction Peak"
-          title={weeklyUsage.peakAppName}
+          title={weekly.distractionPeakAppName}
           tone="alert"
-          value={weeklyUsage.peakDistractionLabel}
+          value={`${weekly.distractionPeakMinutes}m`}
         />
         <StatCard
           eyebrow="Avg Session"
           title="Healthy"
-          value={weeklyUsage.healthyAverageSessionLabel}
+          value={`${weekly.averageSessionMinutes}m`}
         />
         <StatCard
           eyebrow="Resilience Score"

@@ -17,11 +17,11 @@ export default function FocusScreen() {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const focusSessions = useAppStore((state) => state.focusSessions);
   const tasks = useAppStore((state) => state.tasks);
-  const pauseFocusSession = useAppStore((state) => state.pauseFocusSession);
-  const resumeFocusSession = useAppStore((state) => state.resumeFocusSession);
-  const completeFocusSession = useAppStore((state) => state.completeFocusSession);
-  const abandonFocusSession = useAppStore((state) => state.abandonFocusSession);
-  const startFocusSession = useAppStore((state) => state.startFocusSession);
+  const pauseFocusSessionRemote = useAppStore((state) => state.pauseFocusSessionRemote);
+  const resumeFocusSessionRemote = useAppStore((state) => state.resumeFocusSessionRemote);
+  const completeFocusSessionRemote = useAppStore((state) => state.completeFocusSessionRemote);
+  const abandonFocusSessionRemote = useAppStore((state) => state.abandonFocusSessionRemote);
+  const startFocusSessionRemote = useAppStore((state) => state.startFocusSessionRemote);
   const streak = useAppStore((state) => state.streak);
 
   const session = focusSessions[0];
@@ -39,7 +39,7 @@ export default function FocusScreen() {
             label="Start Focus"
             onPress={() => {
               if (currentTask) {
-                startFocusSession(
+                void startFocusSessionRemote(
                   currentTask.id,
                   currentTask.title,
                   currentTask.durationMinutes
@@ -90,16 +90,16 @@ export default function FocusScreen() {
       <FocusControls
         isPaused={session.status === 'paused'}
         onComplete={() => {
-          completeFocusSession();
+          void completeFocusSessionRemote();
           router.push('/check-in');
         }}
         onPauseResume={() => {
           if (session.status === 'paused') {
-            resumeFocusSession();
+            void resumeFocusSessionRemote();
             return;
           }
 
-          pauseFocusSession(remainingSeconds);
+          void pauseFocusSessionRemote(remainingSeconds);
         }}
       />
 
@@ -115,7 +115,7 @@ export default function FocusScreen() {
           message="You can return to this task later, but this focus block will be marked as interrupted."
           onCancel={() => setShowExitConfirmation(false)}
           onConfirm={() => {
-            abandonFocusSession();
+            void abandonFocusSessionRemote();
             setShowExitConfirmation(false);
           }}
           title="Leave this session early?"

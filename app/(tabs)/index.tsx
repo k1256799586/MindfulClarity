@@ -8,32 +8,14 @@ import { PrimaryButton } from '@/components/primary-button';
 import { ScreenShell } from '@/components/screen-shell';
 import { SectionHeader } from '@/components/section-header';
 import { TopBar } from '@/components/top-bar';
-import { buildDashboardSummary } from '@/store/selectors';
 import { useAppStore } from '@/store/app-store';
 import { colors, spacing, typography } from '@/theme';
 
 export default function DashboardScreen() {
-  const tasks = useAppStore((state) => state.tasks);
-  const usageSnapshots = useAppStore((state) => state.usageSnapshots);
-  const streak = useAppStore((state) => state.streak);
-  const focusSessions = useAppStore((state) => state.focusSessions);
-  const appLimits = useAppStore((state) => state.appLimits);
-  const settings = useAppStore((state) => state.settings);
+  const summary = useAppStore((state) => state.dashboard);
   const insight = useAppStore((state) => state.insight);
-  const startFocusSession = useAppStore((state) => state.startFocusSession);
-
-  const summary = buildDashboardSummary({
-    appLimits,
-    checkIns: [],
-    focusSessions,
-    hasSeenOnboarding: true,
-    insight,
-    seededAt: new Date().toISOString(),
-    settings,
-    streak,
-    tasks,
-    usageSnapshots,
-  });
+  const tasks = useAppStore((state) => state.tasks);
+  const startFocusSessionRemote = useAppStore((state) => state.startFocusSessionRemote);
 
   if (tasks.length === 0) {
     return (
@@ -74,7 +56,7 @@ export default function DashboardScreen() {
               return;
             }
 
-            startFocusSession(
+            void startFocusSessionRemote(
               summary.currentTask.id,
               summary.currentTask.title,
               summary.currentTask.durationMinutes

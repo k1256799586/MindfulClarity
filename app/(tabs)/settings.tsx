@@ -7,16 +7,18 @@ import { ScreenShell } from '@/components/screen-shell';
 import { TopBar } from '@/components/top-bar';
 import { SettingsSection } from '@/features/settings/settings-section';
 import { ToggleRow } from '@/features/settings/toggle-row';
-import { buildExportPayload } from '@/services/export';
+import { getExportPayload, shouldUseRemoteApi } from '@/lib/api-client';
 import { useAppStore } from '@/store/app-store';
 import { colors, radii, spacing, typography } from '@/theme';
+import { buildExportPayload } from '@/services/export';
 
 export default function SettingsScreen() {
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const isRemoteMode = shouldUseRemoteApi();
   const appLimits = useAppStore((state) => state.appLimits);
   const settings = useAppStore((state) => state.settings);
-  const updateSettings = useAppStore((state) => state.updateSettings);
-  const resetAppData = useAppStore((state) => state.resetAppData);
+  const updateSettingsRemote = useAppStore((state) => state.updateSettingsRemote);
+  const resetAppDataRemote = useAppStore((state) => state.resetAppDataRemote);
 
   return (
     <ScreenShell>
@@ -44,12 +46,12 @@ export default function SettingsScreen() {
       <SettingsSection title="Focus Experience">
         <ToggleRow
           label="Deep Work Mode"
-          onToggle={(value) => updateSettings({ deepWorkMode: value })}
+          onToggle={(value) => void updateSettingsRemote({ deepWorkMode: value })}
           toggled={settings.deepWorkMode}
         />
         <ToggleRow
           label="Zen Notifications"
-          onToggle={(value) => updateSettings({ zenNotifications: value })}
+          onToggle={(value) => void updateSettingsRemote({ zenNotifications: value })}
           toggled={settings.zenNotifications}
         />
         <ToggleRow
@@ -59,7 +61,7 @@ export default function SettingsScreen() {
         />
         <ToggleRow
           label="Daily Reminders"
-          onToggle={(value) => updateSettings({ remindersEnabled: value })}
+          onToggle={(value) => void updateSettingsRemote({ remindersEnabled: value })}
           toggled={settings.remindersEnabled}
         />
       </SettingsSection>
@@ -67,7 +69,7 @@ export default function SettingsScreen() {
       <SettingsSection title="Focus Control">
         <ToggleRow
           label="Usage Monitoring"
-          onToggle={(value) => updateSettings({ monitoringEnabled: value })}
+          onToggle={(value) => void updateSettingsRemote({ monitoringEnabled: value })}
           toggled={settings.monitoringEnabled}
         />
         {appLimits.map((limit) => (
@@ -85,10 +87,14 @@ export default function SettingsScreen() {
           onPress={() => router.push('/monitoring-info')}
         />
         <ToggleRow
-          label="Export Local Data"
+          label="Export Data"
           onPress={async () => {
+            const message = isRemoteMode
+              ? await getExportPayload()
+              : buildExportPayload(useAppStore.getState());
+
             await Share.share({
-              message: buildExportPayload(useAppStore.getState()),
+              message,
               title: 'Mindful Productivity Export',
             });
           }}
@@ -109,13 +115,17 @@ export default function SettingsScreen() {
           cancelLabel="Cancel"
           confirmLabel="Confirm Reset"
           danger
-          message="This clears your local tasks, sessions, stats, and check-ins, then restores the default sample state."
+          message={
+            isRemoteMode
+              ? 'This clears your tasks, sessions, stats, and check-ins on the connected backend, then restores the default sample state.'
+              : 'This clears your local tasks, sessions, stats, and check-ins, then restores the default sample state.'
+          }
           onCancel={() => setShowResetConfirmation(false)}
           onConfirm={() => {
-            resetAppData();
+            void resetAppDataRemote();
             setShowResetConfirmation(false);
           }}
-          title="Reset your local progress?"
+          title="Reset your progress?"
         />
       ) : null}
 
