@@ -1,4 +1,4 @@
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
@@ -6,7 +6,20 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <Slot />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="task-editor" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="check-in" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="overuse-intervention"
+          options={{ presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="monitoring-info"
+          options={{ presentation: 'modal' }}
+        />
+        <Stack.Screen name="+not-found" />
+      </Stack>
     </SafeAreaProvider>
   );
 }

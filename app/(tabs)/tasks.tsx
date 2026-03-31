@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -92,14 +93,17 @@ export default function TasksScreen() {
         title="Completed"
       />
 
-      <View style={styles.alertCard}>
+      <Pressable
+        onPress={() => router.push('/overuse-intervention')}
+        style={styles.alertCard}
+      >
         <Text style={styles.alertEyebrow}>Distraction Alert</Text>
         <Text style={styles.alertTitle}>Afternoon Slump Incoming</Text>
         <Text style={styles.alertBody}>
           Data suggests your focus peaks at 3 PM. Avoid meetings during this
           period to maintain flow.
         </Text>
-      </View>
+      </Pressable>
     </ScreenShell>
   );
 }

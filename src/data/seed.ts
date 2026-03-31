@@ -103,7 +103,7 @@ export function createSeedData(): AppData {
         id: 'session-completed-1',
         taskId: 'task-system-update',
         taskTitle: 'System Update',
-        durationMinutes: 25,
+        durationMinutes: 52,
         remainingSeconds: 0,
         startedAt: '2026-03-30T08:00:00.000Z',
         completedAt: '2026-03-30T08:25:00.000Z',

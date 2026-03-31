@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { InsightCard } from '@/components/insight-card';
@@ -18,6 +19,7 @@ export default function DashboardScreen() {
   const appLimits = useAppStore((state) => state.appLimits);
   const settings = useAppStore((state) => state.settings);
   const insight = useAppStore((state) => state.insight);
+  const startFocusSession = useAppStore((state) => state.startFocusSession);
 
   const summary = buildDashboardSummary({
     appLimits,
@@ -38,7 +40,22 @@ export default function DashboardScreen() {
       <Text style={styles.eyebrow}>Current intent</Text>
       <Text style={styles.hero}>{summary.currentTaskTitle}</Text>
       <View style={styles.buttonWrap}>
-        <PrimaryButton label="Start Focus" />
+        <PrimaryButton
+          label="Start Focus"
+          onPress={() => {
+            if (!summary.currentTask) {
+              router.push('/task-editor');
+              return;
+            }
+
+            startFocusSession(
+              summary.currentTask.id,
+              summary.currentTask.title,
+              summary.currentTask.durationMinutes
+            );
+            router.push('/focus');
+          }}
+        />
       </View>
 
       <View style={styles.metrics}>

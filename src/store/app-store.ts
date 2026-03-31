@@ -13,9 +13,10 @@ type AppStoreState = AppData & {
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   toggleTaskComplete: (taskId: string) => void;
   startFocusSession: (taskId: string, taskTitle: string, durationMinutes: number) => void;
-  pauseFocusSession: () => void;
+  pauseFocusSession: (remainingSeconds?: number) => void;
   resumeFocusSession: () => void;
   completeFocusSession: () => void;
+  abandonFocusSession: () => void;
   updateSettings: (updates: Partial<UserSettings>) => void;
   resetAppData: () => void;
   markHydrated: () => void;
@@ -79,14 +80,26 @@ export const useAppStore = create<AppStoreState>()(
           ),
         })),
       startFocusSession: (taskId, taskTitle, durationMinutes) =>
-        set(() => ({
-          focusSessions: [buildFocusSession(taskId, taskTitle, durationMinutes)],
+        set((state) => ({
+          focusSessions: [
+            buildFocusSession(taskId, taskTitle, durationMinutes),
+            ...state.focusSessions,
+          ],
+          tasks: state.tasks.map((task) =>
+            task.id === taskId ? { ...task, status: 'in_progress' } : task
+          ),
         })),
-      pauseFocusSession: () =>
+      pauseFocusSession: (remainingSeconds) =>
         set((state) => ({
           focusSessions: state.focusSessions.map((session, index) =>
             index === 0 && session.status === 'active'
-              ? { ...session, pausedAt: new Date().toISOString(), status: 'paused' }
+              ? {
+                  ...session,
+                  pausedAt: new Date().toISOString(),
+                  remainingSeconds:
+                    remainingSeconds ?? session.remainingSeconds,
+                  status: 'paused',
+                }
               : session
           ),
         })),
@@ -94,7 +107,15 @@ export const useAppStore = create<AppStoreState>()(
         set((state) => ({
           focusSessions: state.focusSessions.map((session, index) =>
             index === 0 && session.status === 'paused'
-              ? { ...session, pausedAt: undefined, status: 'active' }
+              ? {
+                  ...session,
+                  endsAt: new Date(
+                    Date.now() + session.remainingSeconds * 1000
+                  ).toISOString(),
+                  pausedAt: undefined,
+                  startedAt: new Date().toISOString(),
+                  status: 'active',
+                }
               : session
           ),
         })),
@@ -107,6 +128,17 @@ export const useAppStore = create<AppStoreState>()(
                   completedAt: new Date().toISOString(),
                   remainingSeconds: 0,
                   status: 'completed',
+                }
+              : session
+          ),
+        })),
+      abandonFocusSession: () =>
+        set((state) => ({
+          focusSessions: state.focusSessions.map((session, index) =>
+            index === 0
+              ? {
+                  ...session,
+                  status: 'abandoned',
                 }
               : session
           ),
