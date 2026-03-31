@@ -6,43 +6,50 @@ import type { Task } from '@/types/models';
 type TaskRowProps = {
   task: Task;
   onToggleComplete?: () => void;
+  onEdit?: () => void;
 };
 
-export function TaskRow({ task, onToggleComplete }: TaskRowProps) {
+export function TaskRow({ task, onToggleComplete, onEdit }: TaskRowProps) {
   const completed = task.status === 'done';
 
   return (
-    <Pressable
-      onPress={onToggleComplete}
+    <View
       style={[
         styles.row,
         completed ? styles.completedRow : undefined,
         task.highFocus && !completed ? styles.highFocusRow : undefined,
       ]}
     >
-      <View
-        style={[
-          styles.radio,
-          completed ? styles.radioCompleted : undefined,
-        ]}
-      />
-      <View style={styles.body}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, completed ? styles.completedTitle : undefined]}>
-            {task.title}
+      <Pressable onPress={onToggleComplete} style={styles.mainAction}>
+        <View
+          style={[
+            styles.radio,
+            completed ? styles.radioCompleted : undefined,
+          ]}
+        />
+        <View style={styles.body}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, completed ? styles.completedTitle : undefined]}>
+              {task.title}
+            </Text>
+            {task.highFocus && !completed ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeLabel}>HIGH FOCUS REQUIRED</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={styles.subtitle}>
+            {task.scheduledLabel ? `${task.scheduledLabel} • ` : ''}
+            {task.subtitle ?? `${task.durationMinutes} mins`}
           </Text>
-          {task.highFocus && !completed ? (
-            <View style={styles.badge}>
-              <Text style={styles.badgeLabel}>HIGH FOCUS REQUIRED</Text>
-            </View>
-          ) : null}
         </View>
-        <Text style={styles.subtitle}>
-          {task.scheduledLabel ? `${task.scheduledLabel} — ` : ''}
-          {task.subtitle ?? `${task.durationMinutes} mins`}
-        </Text>
-      </View>
-    </Pressable>
+      </Pressable>
+      {onEdit ? (
+        <Pressable onPress={onEdit} style={styles.editButton}>
+          <Text style={styles.editLabel}>Edit</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -52,8 +59,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radii.md,
     flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
   },
   completedRow: {
     backgroundColor: '#edf5ef',
@@ -61,6 +66,13 @@ const styles = StyleSheet.create({
   highFocusRow: {
     borderLeftColor: colors.alert,
     borderLeftWidth: 3,
+  },
+  mainAction: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   radio: {
     borderColor: '#cfd5de',
@@ -108,5 +120,16 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.6,
+  },
+  editButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+  },
+  editLabel: {
+    color: colors.mintDeep,
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

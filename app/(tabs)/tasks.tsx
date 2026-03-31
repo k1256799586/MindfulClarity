@@ -14,6 +14,7 @@ import { colors, radii, spacing, typography } from '@/theme';
 
 export default function TasksScreen() {
   const [composerOpen, setComposerOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const appLimits = useAppStore((state) => state.appLimits);
   const createTask = useAppStore((state) => state.createTask);
   const focusSessions = useAppStore((state) => state.focusSessions);
@@ -22,6 +23,7 @@ export default function TasksScreen() {
   const streak = useAppStore((state) => state.streak);
   const tasks = useAppStore((state) => state.tasks);
   const toggleTaskComplete = useAppStore((state) => state.toggleTaskComplete);
+  const updateTask = useAppStore((state) => state.updateTask);
   const usageSnapshots = useAppStore((state) => state.usageSnapshots);
 
   const summary = buildDashboardSummary({
@@ -37,6 +39,10 @@ export default function TasksScreen() {
     usageSnapshots,
   });
   const grouped = groupTasks(tasks);
+  const editingTask = editingTaskId
+    ? tasks.find((task) => task.id === editingTaskId)
+    : undefined;
+  const showComposer = composerOpen || Boolean(editingTask);
 
   return (
     <ScreenShell>
@@ -53,42 +59,69 @@ export default function TasksScreen() {
         <ProgressRingBadge label="+" />
       </View>
 
-      <Pressable onPress={() => setComposerOpen((current) => !current)} style={styles.quickAdd}>
+      <Pressable
+        onPress={() => {
+          setEditingTaskId(null);
+          setComposerOpen((current) => !current);
+        }}
+        style={styles.quickAdd}
+      >
         <Text style={styles.quickAddLabel}>Add a moment of productivity...</Text>
       </Pressable>
 
-      {composerOpen ? (
+      {showComposer ? (
         <View style={styles.composerWrap}>
           <TaskEditorForm
-            onCancel={() => setComposerOpen(false)}
-            onSave={(input) => {
-              createTask({
-                durationMinutes: input.durationMinutes,
-                lane: input.lane,
-                reminderEnabled: input.reminderEnabled,
-                subtitle: input.lane === 'focus' ? 'Clarity focus' : 'No distractions',
-                title: input.title,
-              });
+            initialValues={editingTask}
+            onCancel={() => {
               setComposerOpen(false);
+              setEditingTaskId(null);
             }}
+            onSave={(input) => {
+              if (editingTask) {
+                updateTask(editingTask.id, {
+                  durationMinutes: input.durationMinutes,
+                  lane: input.lane,
+                  reminderEnabled: input.reminderEnabled,
+                  subtitle:
+                    input.lane === 'focus' ? 'Clarity focus' : 'No distractions',
+                  title: input.title,
+                });
+              } else {
+                createTask({
+                  durationMinutes: input.durationMinutes,
+                  lane: input.lane,
+                  reminderEnabled: input.reminderEnabled,
+                  subtitle:
+                    input.lane === 'focus' ? 'Clarity focus' : 'No distractions',
+                  title: input.title,
+                });
+              }
+              setComposerOpen(false);
+              setEditingTaskId(null);
+            }}
+            submitLabel={editingTask ? 'Update Task' : 'Save Task'}
           />
         </View>
       ) : null}
 
       <TaskListSection
         emptyMessage="Create a focus task to start your day."
+        onEditTask={setEditingTaskId}
         onToggleComplete={toggleTaskComplete}
         tasks={grouped.focus}
         title="Focus"
       />
       <TaskListSection
         emptyMessage="No transition rituals scheduled yet."
+        onEditTask={setEditingTaskId}
         onToggleComplete={toggleTaskComplete}
         tasks={grouped.transition}
         title="Transition"
       />
       <TaskListSection
         emptyMessage="Completed tasks will appear here."
+        onEditTask={setEditingTaskId}
         tasks={grouped.completed}
         title="Completed"
       />

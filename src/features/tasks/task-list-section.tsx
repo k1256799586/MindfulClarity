@@ -12,6 +12,7 @@ type TaskListSectionProps = {
   tasks: Task[];
   emptyMessage: string;
   onToggleComplete?: (taskId: string) => void;
+  onEditTask?: (taskId: string) => void;
 };
 
 export function TaskListSection({
@@ -19,6 +20,7 @@ export function TaskListSection({
   tasks,
   emptyMessage,
   onToggleComplete,
+  onEditTask,
 }: TaskListSectionProps) {
   return (
     <View style={styles.section}>
@@ -28,6 +30,7 @@ export function TaskListSection({
           tasks.map((task) => (
             <TaskRow
               key={task.id}
+              onEdit={onEditTask ? () => onEditTask(task.id) : undefined}
               onToggleComplete={
                 onToggleComplete ? () => onToggleComplete(task.id) : undefined
               }

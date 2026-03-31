@@ -17,4 +17,14 @@ describe('Focus screen', () => {
     fireEvent.press(screen.getByText('Resume'));
     expect(screen.getByText('Pause')).toBeTruthy();
   });
+
+  it('confirms before ending the active session', () => {
+    render(<FocusScreen />);
+
+    fireEvent.press(screen.getByText('Stop Session'));
+    expect(screen.getByText('Leave this session early?')).toBeTruthy();
+
+    fireEvent.press(screen.getByText('End Session'));
+    expect(screen.getByText('No active session')).toBeTruthy();
+  });
 });

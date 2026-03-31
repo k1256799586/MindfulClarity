@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { createSeedData } from '@/data/seed';
+import { getTodayKey } from '@/utils/date';
 import type { AppData, FocusSession, Task, UserSettings } from '@/types/models';
 
 type AppStoreState = AppData & {
@@ -17,6 +18,7 @@ type AppStoreState = AppData & {
   resumeFocusSession: () => void;
   completeFocusSession: () => void;
   abandonFocusSession: () => void;
+  submitCheckIn: (note: string) => void;
   updateSettings: (updates: Partial<UserSettings>) => void;
   resetAppData: () => void;
   markHydrated: () => void;
@@ -143,6 +145,53 @@ export const useAppStore = create<AppStoreState>()(
               : session
           ),
         })),
+      submitCheckIn: (note) =>
+        set((state) => {
+          const latestCompletedSession = state.focusSessions.find(
+            (session) =>
+              session.status === 'completed' &&
+              !state.checkIns.some((checkIn) => checkIn.sessionId === session.id)
+          );
+
+          if (!latestCompletedSession) {
+            return {};
+          }
+
+          const createdAt = new Date().toISOString();
+          const todayKey = getTodayKey(new Date(createdAt));
+          const normalizedNote = note.trim() || 'Protected a meaningful block of work.';
+          const shouldIncrementStreak = state.streak.lastCheckInDate !== todayKey;
+          const nextCurrentDays = shouldIncrementStreak
+            ? state.streak.currentDays + 1
+            : state.streak.currentDays;
+
+          return {
+            checkIns: [
+              {
+                id: `checkin-${Date.now()}`,
+                createdAt,
+                note: normalizedNote,
+                sessionId: latestCompletedSession.id,
+              },
+              ...state.checkIns,
+            ],
+            streak: {
+              currentDays: nextCurrentDays,
+              lastCheckInDate: todayKey,
+              longestDays: Math.max(state.streak.longestDays, nextCurrentDays),
+            },
+            tasks: state.tasks.map((task) =>
+              task.id === latestCompletedSession.taskId
+                ? {
+                    ...task,
+                    completedAt: createdAt,
+                    progressRatio: 1,
+                    status: 'done',
+                  }
+                : task
+            ),
+          };
+        }),
       updateSettings: (updates) =>
         set((state) => ({
           settings: {
@@ -150,10 +199,11 @@ export const useAppStore = create<AppStoreState>()(
             ...updates,
           },
         })),
-      resetAppData: () => ({
-        ...createSeedData(),
-        hydrated: true,
-      }),
+      resetAppData: () =>
+        set(() => ({
+          ...createSeedData(),
+          hydrated: true,
+        })),
       markHydrated: () => ({
         hydrated: true,
       }),

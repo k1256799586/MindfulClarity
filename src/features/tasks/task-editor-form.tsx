@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/primary-button';
@@ -6,6 +6,13 @@ import { colors, radii, spacing, typography } from '@/theme';
 import type { TaskLane } from '@/types/models';
 
 type TaskEditorFormProps = {
+  initialValues?: {
+    title?: string;
+    durationMinutes?: number;
+    lane?: TaskLane;
+    reminderEnabled?: boolean;
+  };
+  submitLabel?: string;
   onCancel?: () => void;
   onSave: (input: {
     title: string;
@@ -15,11 +22,27 @@ type TaskEditorFormProps = {
   }) => void;
 };
 
-export function TaskEditorForm({ onCancel, onSave }: TaskEditorFormProps) {
-  const [title, setTitle] = useState('');
-  const [duration, setDuration] = useState('45');
-  const [reminderEnabled, setReminderEnabled] = useState(true);
-  const [lane, setLane] = useState<TaskLane>('focus');
+export function TaskEditorForm({
+  initialValues,
+  submitLabel = 'Save Task',
+  onCancel,
+  onSave,
+}: TaskEditorFormProps) {
+  const [title, setTitle] = useState(initialValues?.title ?? '');
+  const [duration, setDuration] = useState(
+    String(initialValues?.durationMinutes ?? 45)
+  );
+  const [reminderEnabled, setReminderEnabled] = useState(
+    initialValues?.reminderEnabled ?? true
+  );
+  const [lane, setLane] = useState<TaskLane>(initialValues?.lane ?? 'focus');
+
+  useEffect(() => {
+    setTitle(initialValues?.title ?? '');
+    setDuration(String(initialValues?.durationMinutes ?? 45));
+    setReminderEnabled(initialValues?.reminderEnabled ?? true);
+    setLane(initialValues?.lane ?? 'focus');
+  }, [initialValues]);
 
   return (
     <View style={styles.card}>
@@ -84,7 +107,7 @@ export function TaskEditorForm({ onCancel, onSave }: TaskEditorFormProps) {
           </Pressable>
         ) : null}
         <PrimaryButton
-          label="Save Task"
+          label={submitLabel}
           onPress={() => {
             if (!title.trim()) {
               return;
@@ -96,7 +119,6 @@ export function TaskEditorForm({ onCancel, onSave }: TaskEditorFormProps) {
               lane,
               reminderEnabled,
             });
-            setTitle('');
           }}
         />
       </View>

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { EmptyState } from '@/components/empty-state';
 import { InsightCard } from '@/components/insight-card';
 import { MetricCard } from '@/components/metric-card';
 import { PrimaryButton } from '@/components/primary-button';
@@ -33,6 +34,31 @@ export default function DashboardScreen() {
     tasks,
     usageSnapshots,
   });
+
+  if (tasks.length === 0) {
+    return (
+      <ScreenShell>
+        <TopBar title="Mindful Productivity" />
+        <Text style={styles.eyebrow}>Current intent</Text>
+        <EmptyState
+          message="Start by capturing one meaningful task for today."
+          title="Create your first task"
+        />
+        <View style={styles.buttonWrap}>
+          <PrimaryButton
+            label="Create first task"
+            onPress={() => router.push('/task-editor')}
+          />
+        </View>
+        <View style={styles.section}>
+          <InsightCard
+            description="One clear task is enough to rebuild momentum."
+            title="Clarity Insight"
+          />
+        </View>
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell>

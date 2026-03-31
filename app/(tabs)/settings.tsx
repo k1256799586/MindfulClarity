@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 
+import { ConfirmationSheet } from '@/components/confirmation-sheet';
 import { ScreenShell } from '@/components/screen-shell';
 import { TopBar } from '@/components/top-bar';
 import { SettingsSection } from '@/features/settings/settings-section';
@@ -10,6 +12,8 @@ import { useAppStore } from '@/store/app-store';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export default function SettingsScreen() {
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const appLimits = useAppStore((state) => state.appLimits);
   const settings = useAppStore((state) => state.settings);
   const updateSettings = useAppStore((state) => state.updateSettings);
   const resetAppData = useAppStore((state) => state.resetAppData);
@@ -53,6 +57,26 @@ export default function SettingsScreen() {
           onPress={() => router.push('/monitoring-info')}
           value={settings.visualClarity}
         />
+        <ToggleRow
+          label="Daily Reminders"
+          onToggle={(value) => updateSettings({ remindersEnabled: value })}
+          toggled={settings.remindersEnabled}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Focus Control">
+        <ToggleRow
+          label="Usage Monitoring"
+          onToggle={(value) => updateSettings({ monitoringEnabled: value })}
+          toggled={settings.monitoringEnabled}
+        />
+        {appLimits.map((limit) => (
+          <ToggleRow
+            key={limit.id}
+            label={limit.appName}
+            value={`${limit.dailyLimitMinutes}m`}
+          />
+        ))}
       </SettingsSection>
 
       <SettingsSection title="Privacy & Data">
@@ -76,9 +100,24 @@ export default function SettingsScreen() {
         <ToggleRow
           danger
           label="Reset Productivity Stats"
-          onPress={() => resetAppData()}
+          onPress={() => setShowResetConfirmation(true)}
         />
       </SettingsSection>
+
+      {showResetConfirmation ? (
+        <ConfirmationSheet
+          cancelLabel="Cancel"
+          confirmLabel="Confirm Reset"
+          danger
+          message="This clears your local tasks, sessions, stats, and check-ins, then restores the default sample state."
+          onCancel={() => setShowResetConfirmation(false)}
+          onConfirm={() => {
+            resetAppData();
+            setShowResetConfirmation(false);
+          }}
+          title="Reset your local progress?"
+        />
+      ) : null}
 
       <View style={styles.footerCard}>
         <Text style={styles.footerButton}>Sign Out of Sanctuary</Text>

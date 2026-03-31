@@ -19,7 +19,7 @@ export function buildDashboardSummary(data: AppData): DashboardSummary {
     .filter((item) => item.isDistracting)
     .reduce((sum, item) => sum + item.minutesUsed, 0);
   const progressPercentage = clamp(
-    Math.round((currentTask?.progressRatio ?? 0.68) * 100),
+    Math.round((currentTask?.progressRatio ?? 0) * 100),
     0,
     100
   );
@@ -32,7 +32,7 @@ export function buildDashboardSummary(data: AppData): DashboardSummary {
 
   return {
     currentTask,
-    currentTaskTitle: currentTask?.title ?? 'Create your first focus task',
+    currentTaskTitle: currentTask?.title ?? 'Create your first task',
     progressPercentage,
     distractionMinutes,
     streakDays: data.streak.currentDays,

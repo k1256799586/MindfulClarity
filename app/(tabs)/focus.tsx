@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { ConfirmationSheet } from '@/components/confirmation-sheet';
 import { EmptyState } from '@/components/empty-state';
 import { PrimaryButton } from '@/components/primary-button';
 import { ScreenShell } from '@/components/screen-shell';
@@ -12,6 +14,7 @@ import { useAppStore } from '@/store/app-store';
 import { colors, spacing, typography } from '@/theme';
 
 export default function FocusScreen() {
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const focusSessions = useAppStore((state) => state.focusSessions);
   const tasks = useAppStore((state) => state.tasks);
   const pauseFocusSession = useAppStore((state) => state.pauseFocusSession);
@@ -30,15 +33,45 @@ export default function FocusScreen() {
 
   if (!session || session.status === 'abandoned') {
     return (
-      <ScreenShell footer={<PrimaryButton label="Start Focus" onPress={() => {
-        if (currentTask) {
-          startFocusSession(currentTask.id, currentTask.title, currentTask.durationMinutes);
+      <ScreenShell
+        footer={
+          <PrimaryButton
+            label="Start Focus"
+            onPress={() => {
+              if (currentTask) {
+                startFocusSession(
+                  currentTask.id,
+                  currentTask.title,
+                  currentTask.durationMinutes
+                );
+              }
+            }}
+          />
         }
-      }} />}>
+      >
         <TopBar title="Mindful Productivity" />
         <EmptyState
           message="Choose a task and start a calm, uninterrupted session."
           title="No active session"
+        />
+      </ScreenShell>
+    );
+  }
+
+  if (session.status === 'completed') {
+    return (
+      <ScreenShell
+        footer={
+          <PrimaryButton
+            label="Open Check-in"
+            onPress={() => router.push('/check-in')}
+          />
+        }
+      >
+        <TopBar title="Mindful Productivity" />
+        <EmptyState
+          message="Capture one note to lock in the work you just protected."
+          title="Session complete"
         />
       </ScreenShell>
     );
@@ -71,11 +104,23 @@ export default function FocusScreen() {
       />
 
       <View style={styles.stopWrap}>
-        <PrimaryButton
-          label="Stop Session"
-          onPress={() => abandonFocusSession()}
-        />
+        <PrimaryButton label="Stop Session" onPress={() => setShowExitConfirmation(true)} />
       </View>
+
+      {showExitConfirmation ? (
+        <ConfirmationSheet
+          cancelLabel="Keep Session"
+          confirmLabel="End Session"
+          danger
+          message="You can return to this task later, but this focus block will be marked as interrupted."
+          onCancel={() => setShowExitConfirmation(false)}
+          onConfirm={() => {
+            abandonFocusSession();
+            setShowExitConfirmation(false);
+          }}
+          title="Leave this session early?"
+        />
+      ) : null}
 
       <View style={styles.streakCard}>
         <Text style={styles.streakTitle}>Focus Streak</Text>
