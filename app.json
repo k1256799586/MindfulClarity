@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Mindful Productivity",
+    "slug": "mindful-productivity",
+    "scheme": "mindful-productivity",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
+
